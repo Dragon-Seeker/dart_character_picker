@@ -1,0 +1,176 @@
+{
+  "identifier": "apex_legend",
+  "version": "1.0.0",
+  "stored_data_type": "character",
+  "properties": {
+    "legend_type": {
+      "value_type" : "String"
+    },
+    "starting_season": {
+      "value_type" : "int",
+      "range": {
+        "min": 0
+      },
+      "overrides": {
+        "Preseason": 0,
+        "Season 1" : 1,
+        "Season 2" : 2,
+        "Season 3" : 3,
+        "Season 4" : 4,
+        "Season 5" : 5,
+        "Season 6" : 6,
+        "Season 7" : 7,
+        "Season 8" : 8,
+        "Season 9" : 9,
+        "Season 10" : 10,
+        "Season 11" : 11,
+        "Season 12" : 12,
+        "Season 13" : 13
+      }
+    }
+  },
+  "data_set": {
+    "Bangalore": {
+      "legend_type": "offensive",
+      "starting_season": 0
+    },
+    "Bloodhound": {
+      "legend_type": "recon",
+      "starting_season": 0
+    },
+    "Gibraltar": {
+      "legend_type": "defensive",
+      "starting_season": 0
+    },
+    "Lifeline": {
+      "legend_type": "support",
+      "starting_season": 0
+    },
+    "Pathfinder": {
+      "legend_type": "recon",
+      "starting_season": 0
+    },
+    "Wraith": {
+      "legend_type": "offensive",
+      "starting_season": 0
+    },
+    "Caustic": {
+      "legend_type": "defensive",
+      "starting_season": 0
+    },
+    "Mirage": {
+      "legend_type": "offensive",
+      "starting_season": 0
+    },
+    "Octane": {
+      "legend_type": "offensive",
+      "starting_season": 1
+    },
+    "Wattson": {
+      "legend_type": "defensive",
+      "starting_season": 2
+    },
+    "Crypto": {
+      "legend_type": "recon",
+      "starting_season": 3
+    },
+    "Revenant": {
+      "legend_type": "offensive",
+      "starting_season": 4
+    },
+    "Loba": {
+      "legend_type": "support",
+      "starting_season": 5
+    },
+    "Rampart": {
+      "legend_type": "defensive",
+      "starting_season": 6
+    },
+    "Horizon": {
+      "legend_type": "offensive",
+      "starting_season": 7
+    },
+    "Fuse": {
+      "legend_type": "offensive",
+      "starting_season": 8
+    },
+    "Valkyrie": {
+      "legend_type": "recon",
+      "starting_season": 9
+    },
+    "Seer": {
+      "legend_type": "recon",
+      "starting_season": 10
+    },
+    "Ash": {
+      "legend_type": "offensive",
+      "starting_season": 11
+    },
+    "Mad Maggie": {
+      "legend_type": "offensive",
+      "starting_season": 12
+    },
+    "Newcastle": {
+      "legend_type": "defensive",
+      "starting_season": 13
+    }
+  },
+  "filters": {
+    "offensive_only":{
+      "filter_type": "single_value",
+      "data_type": "legend_type",
+      "value": "offensive"
+    },
+    "recon_only":{
+      "filter_type": "single_value",
+      "data_type": "legend_type",
+      "value": "recon"
+    },
+    "defensive_only":{
+      "filter_type": "single_value",
+      "data_type": "legend_type",
+      "value": "defensive"
+    },
+    "support_only":{
+      "filter_type": "single_value",
+      "data_type": "legend_type",
+      "value": "support"
+    },
+    "women_only":{
+      "filter_type": "multi_value",
+      "data_type": "name",
+      "values": [
+        "Bangalore",
+        "Lifeline",
+        "Wraith"
+      ]
+    },
+    "all_before_season_3":{
+      "filter_type": "number_range",
+      "data_type": "starting_season",
+      "range": {
+        "min": 0,
+        "max": 3
+      }
+    }
+  },
+  "presets": {
+    "preset_1": {
+      "filters": [
+        "offensive_only"
+      ]
+    },
+    "preset_2": {
+      "filters": [
+        "recon_only",
+        "defensive_only",
+        "support_only"
+      ]
+    },
+    "preset_3": {
+      "filters": [
+        "all_before_season_3"
+      ]
+    }
+  }
+}

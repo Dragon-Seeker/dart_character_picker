@@ -1,0 +1,8 @@
+{
+  "test5000": {
+    "filters": [
+      "offensive_only",
+      "recon_only"
+    ]
+  }
+}

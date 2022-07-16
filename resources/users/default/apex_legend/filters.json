@@ -1,0 +1,7 @@
+{
+  "test5000": {
+    "filter_type": "single_value",
+    "data_type": "legend_type",
+    "value": "recon"
+  }
+}

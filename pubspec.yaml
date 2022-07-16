@@ -1,0 +1,47 @@
+name: dart_character_picker
+description: A sample command-line application.
+version: 1.0.0
+# homepage: https://www.example.com
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+  flutter: ">=1.17.0"
+
+# dependencies:
+#   path: ^1.8.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - resources/
+    - resources/characterConfigs/
+    - resources/ui_info/
+    # Custom UI data
+    - resources/ui_info/apex_legend/
+    - resources/ui_info/apex_legend/images/legend_type/
+    - resources/ui_info/apex_legend/images/name/
+    # Debug User Info
+    - resources/users/default/apex_legend/
+
+dev_dependencies:
+  lints: ^1.0.0
+  test: ^1.16.0
+
+dependencies: 
+  flutter:
+    sdk: flutter
+
+  async: ^2.9.0
+  args: ^2.3.1
+  basic_utils: ^4.2.2
+  io: ^1.0.3
+  dart_numerics: ^0.0.6
+  window_size:
+    git:
+      url: https://github.com/google/flutter-desktop-embedding.git
+      path: plugins/window_size
+      ref: a738913c8ce2c9f47515382d40827e794a334274
+  file_picker: ^4.6.1
+  path_provider: ^2.0.11
+  flex_color_picker: ^2.5.0
+  flutter_settings_screens: ^0.3.2-null-safety

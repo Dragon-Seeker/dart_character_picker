@@ -1,0 +1,140 @@
+{
+  "data_set": {
+    "Bangalore": {
+      "name": {
+        "icon": "Bangalore_Icon.png",
+        "bg_color": "#af3d31"
+      },
+      "legend_type": "Offensive.png",
+      "starting_season": 0
+    },
+    "Bloodhound": {
+      "name": {
+        "icon": "Bloodhound_Icon.png",
+        "bg_color": "#ba3833"
+      },
+      "legend_type": "Recon.png",
+      "starting_season": 0
+    },
+    "Gibraltar": {
+      "name": {
+        "icon": "Gibraltar_Icon.png",
+        "bg_color": "#bf7543"
+      },
+      "legend_type": "Defensive.png",
+      "starting_season": 0
+    },
+    "Lifeline": {
+      "name": {
+        "icon": "Lifeline_Icon.png",
+        "bg_color": "#a571b4"
+      },
+      "legend_type": "Support.png",
+      "starting_season": 0
+    },
+    "Pathfinder": {
+      "name": {
+        "icon": "Pathfinder_Icon.png",
+        "bg_color": "#81ceee"
+      },
+      "legend_type": "Recon.png",
+      "starting_season": 0
+    },
+    "Wraith": {
+      "name": {
+        "icon": "Wraith_Icon.png",
+        "bg_color": "#8961f0"
+      },
+      "legend_type": "Offensive.png",
+      "starting_season": 0
+    },
+    "Caustic": {
+      "name": {
+        "icon": "Caustic_Icon.png",
+        "bg_color": "#cdb078"
+      },
+      "legend_type": "Defensive.png",
+      "starting_season": 0
+    },
+    "Mirage": {
+      "name": {
+        "icon": "Mirage_Icon.png",
+        "bg_color": "#dba24a"
+      },
+      "legend_type": "Offensive.png",
+      "starting_season": 0
+    },
+    "Octane": {
+      "name": {
+        "icon": "Octane_Icon.png",
+        "bg_color": "#80b664"
+      },
+      "legend_type": "Offensive.png",
+      "starting_season": 1
+    },
+    "Wattson": {
+      "name": {
+        "icon": "Wattson_Icon.png",
+        "bg_color": "#0d2d6e"
+      },
+      "legend_type": "Defensive.png",
+      "starting_season": 2
+    },
+    "Crypto": {
+      "name": {
+        "icon": "Crypto_Icon.png",
+        "bg_color": "#605284"
+      },
+      "legend_type": "Recon.png",
+      "starting_season": 3
+    },
+    "Revenant": {
+      "name": {
+        "icon": "Revenant_Icon.png",
+        "bg_color": "#b4b47b"
+      },
+      "legend_type": "Offensive.png",
+      "starting_season": 4
+    },
+    "Loba": {
+      "name": {
+        "icon": "Loba_Icon.png",
+        "bg_color": "#f5cc67"
+      },
+      "legend_type": "Support.png",
+      "starting_season": 5
+    },
+    "Rampart": {
+      "legend_type": "Defensive.png",
+      "starting_season": 6
+    },
+    "Horizon": {
+      "legend_type": "Offensive.png",
+      "starting_season": 7
+    },
+    "Fuse": {
+      "legend_type": "Offensive.png",
+      "starting_season": 8
+    },
+    "Valkyrie": {
+      "legend_type": "Recon.png",
+      "starting_season": 9
+    },
+    "Seer": {
+      "legend_type": "Recon.png",
+      "starting_season": 10
+    },
+    "Ash": {
+      "legend_type": "Offensive.png",
+      "starting_season": 11
+    },
+    "Mad Maggie": {
+      "legend_type": "Offensive.png",
+      "starting_season": 12
+    },
+    "Newcastle": {
+      "legend_type": "Defensive.png",
+      "starting_season": 13
+    }
+  }
+}
