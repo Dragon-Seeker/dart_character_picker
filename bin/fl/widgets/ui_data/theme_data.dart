@@ -2,9 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_screens/flutter_settings_screens.dart';
 
-class ThemeHandler{
+class ThemeHandler {
 
-  static bool fullBlackTextIcons = false;
+  static bool fullBlackTextIcons = Settings.getValue("full_black_text_icons", defaultValue: false)!;
 
   static ThemeData themeData(){
     return ThemeData(
