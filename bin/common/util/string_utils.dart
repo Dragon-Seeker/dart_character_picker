@@ -11,20 +11,35 @@ class TextLogger{
 
   static bool disableAnsiOutput = false;
 
-  static void errorOutput(String output, {bool debugOut = false}){
-    consoleOutput(output, outputName: "Error", nameAnsiCodes: [red], outputAnsiCodes: [red], debugOut: debugOut);
+  static void errorOutput(String output, {bool debugOut = false, Iterable<dynamic> args = const[]}){
+    consoleOutput(output, args: args,  outputName: "Error", nameAnsiCodes: [red], outputAnsiCodes: [red], debugOut: debugOut);
   }
 
-  static void warningOutput(String output, {bool debugOut = false}){
-    consoleOutput(output, outputName: "Warning", nameAnsiCodes: [yellow], debugOut: debugOut);
+  static void warningOutput(String output, {bool debugOut = false, Iterable<dynamic> args = const[]}){
+    consoleOutput(output, args: args, outputName: "Warning", nameAnsiCodes: [yellow], debugOut: debugOut);
   }
 
-  static void consoleOutput(String output, {String outputName = "Info", Iterable<AnsiCode> nameAnsiCodes = const[white], Iterable<AnsiCode> outputAnsiCodes = const[white], bool debugOut = false}){
-    if(debugOut && !MainConfig.debugOutputEnabled()) {
-      return;
+  static void consoleOutput(String output, {String outputName = "Info", Iterable<dynamic> args = const[], Iterable<AnsiCode> nameAnsiCodes = const[white], Iterable<AnsiCode> outputAnsiCodes = const[white], bool debugOut = false}){
+    if(debugOut) {
+      if(!MainConfig.debugOutputEnabled()) return;
+
+      outputName = webSafeConsoleOut("Debug", [styleBold, ...nameAnsiCodes]) + " " + webSafeConsoleOut(outputName, nameAnsiCodes.toList());
     }
 
-    String stringOutput = webSafeConsoleOut("[", [lightBlue]) + (debugOut ? webSafeConsoleOut("Debug", [styleBold, ...nameAnsiCodes]) + " " : "") + webSafeConsoleOut(outputName, nameAnsiCodes.toList()) + webSafeConsoleOut("]: ", [lightBlue]) + webSafeConsoleOut(output, outputAnsiCodes.toList());
+    args = args.toList(growable: false);
+
+    args as List<dynamic>;
+
+    List<String> parts = (webSafeConsoleOut("[", [lightBlue]) + outputName + webSafeConsoleOut("]: ", [lightBlue])
+        + webSafeConsoleOut(output, outputAnsiCodes.toList())).split("/({})");
+
+    String stringOutput = "";
+
+    if(parts.length > 1) {
+      for(int i = 0; i < parts.length; i++) {
+        stringOutput += parts[i] + (i < args.length && (i + 1 < parts.length) ? args[i] : "");
+      }
+    } 
 
     print(stringOutput);
   }
