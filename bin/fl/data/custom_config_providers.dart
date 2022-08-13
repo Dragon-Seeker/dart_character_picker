@@ -136,8 +136,9 @@ class ConfigData extends CacheProvider{
   File dataFileToRead;
 
   bool forceConfigReset;
+  bool forceValueSets;
 
-  ConfigData(this.dataFileToRead, this.defaultSettingsData, {this.forceConfigReset = false});
+  ConfigData(this.dataFileToRead, this.defaultSettingsData, {this.forceConfigReset = false, this.forceValueSets = false});
 
   @override
   Future<void> init() async {
@@ -175,7 +176,7 @@ class ConfigData extends CacheProvider{
 
   @override
   bool containsKey(String key) {
-    return settingsData.containsKey(key);
+    return settingsData.containsKey(key) || (forceValueSets && defaultSettingsData.containsKey(key));
   }
 
   @override
@@ -270,21 +271,21 @@ class ConfigData extends CacheProvider{
     if(value != null) {
       bool valueSet = false;
 
-      if(T.toString() == "Color") {
-        settingsData[key] = (value as Color).value;
-        valueSet = true;
-      } else {
-        if(settingsData[key] is T){
+      if(settingsData.containsKey(key) || (!settingsData.containsKey(key) && forceValueSets)) {
+        if(T.toString() == "Color") {
+          settingsData[key] = (value as Color).value;
+          valueSet = true;
+        } else if(settingsData[key] is T || (!settingsData.containsKey(key) && forceValueSets)) {
           settingsData[key] = value;
           valueSet = true;
         } else {
-          debugPrint("A value that was about to be set did not fit the value stored within the data map: $T");
+          debugPrint("A value that was about to be set had a type mismatch within the Map: [$T, ${settingsData[key].runtimeType}]");
         }
+      } else {
+        debugPrint("A value that was about to be set did not exist within the given data map: $T");
       }
 
-      if(valueSet) {
-        encodeData();
-      }
+      if(valueSet) encodeData();
     }
 
     return Future.value();

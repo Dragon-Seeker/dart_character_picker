@@ -54,7 +54,7 @@ class FileHelper {
 
     List<ConfigData> configs = [];
 
-    configs.add(ConfigData(File(fileDirectory + getPlatformPath("resources/users/$currentFlUser/themeSettings.json")), defaultThemeData, forceConfigReset: true));
+    configs.add(ConfigData(File(fileDirectory + getPlatformPath("resources/users/$currentFlUser/themeSettings.json")), defaultThemeData, forceValueSets: true));
 
     await Settings.init(cacheProvider: MultiConfigCache(configs));
   }
