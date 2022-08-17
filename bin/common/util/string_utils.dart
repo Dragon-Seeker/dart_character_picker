@@ -31,15 +31,13 @@ class TextLogger{
     args as List<dynamic>;
 
     List<String> parts = (webSafeConsoleOut("[", [lightBlue]) + outputName + webSafeConsoleOut("]: ", [lightBlue])
-        + webSafeConsoleOut(output, outputAnsiCodes.toList())).split("/({})");
+        + webSafeConsoleOut(output, outputAnsiCodes.toList())).split("{}");
 
     String stringOutput = "";
 
-    if(parts.length > 1) {
-      for(int i = 0; i < parts.length; i++) {
-        stringOutput += parts[i] + (i < args.length && (i + 1 < parts.length) ? args[i] : "");
-      }
-    } 
+    for(int i = 0; i < parts.length; i++) {
+      stringOutput += parts[i] + (i < args.length && (i + 1 < parts.length) ? args[i].toString() : "");
+    }
 
     print(stringOutput);
   }
