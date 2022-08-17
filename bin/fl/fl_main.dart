@@ -18,6 +18,8 @@ import '../common/main_config.dart';
 import '../common/util/file_ops.dart';
 import '../common/util/string_utils.dart';
 import 'data/file_helper.dart';
+import 'fl_thing_manager.dart';
+import 'widgets/selection_menu_widget.dart';
 import 'widgets/thing_manager_widgets.dart';
 import 'widgets/overlay_helper.dart';
 import 'data/imageManager.dart';
@@ -26,40 +28,12 @@ import 'widgets/custom_settings_widgets.dart';
 
 bool showPresetAndFilterData = false;
 
+UIDataManger dataManager = UIDataManger();
+
 ThingManager? currentManager;
 ImageManager? currentImageManager;
 
 User currentFlUser = User("flutter", UserPerms.user);
-
-void initCharacterConfigsFl() {
-  TextLogger.consoleOutput("Attempting to Loading Character Configs!",
-      debugOut: true);
-
-  var directory = Directory(fileDirectory + getPlatformPath("resources/characterConfigs/"));
-
-  if (directory.existsSync()) {
-    for (var file in getAllJsonFiles(directory)) {
-      Map<String, dynamic> json = jsonDecode(file.readAsStringSync());
-
-      try {
-        ThingManager.parseManagerData(json);
-      } catch(e){
-        TextLogger.warningOutput("It seems that there might have been a issue reading a config, skipping over such");
-        print(e);
-      }
-    }
-
-    TextLogger.consoleOutput("Finished Character Config Loading!",
-        debugOut: true);
-  } else {
-    TextLogger.errorOutput(
-        "Issue with a Loading process for CharacterConfigs as there is currently no configs found! Please make sure you put them within the '${Directory.current}/resources/characterConfigs/' directory!");
-
-    directory.createSync();
-
-    exit(0);
-  }
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,25 +48,19 @@ void main() async {
   MainConfig.initConfigCl();
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    setWindowTitle('Character Picker by Blodhgarm (Version:${ProgramInfoLoader.getProgramVersion()})');
+    setWindowTitle('Probabilis by Blodhgarm (Version:${ProgramInfoLoader.getProgramVersion()})');
   }
 
   TextLogger.disableAnsiOutput = kIsWeb;
 
-  initCharacterConfigsFl();
+  dataManager.initCharacterConfigsFl();
 
   runApp(MyApp());
 }
 
 //-----------------------------------
 
-OverlayHelper settingsMenuHelper = OverlayHelper(LabeledGlobalKey("SettingsMenu"), (UpdateParentState updateStateMethod) {
-  return OverlayEntry(
-    builder: (context) {
-      return SettingsWidget(updateStateMethod);
-    }
-  );
-});
+final Key settingsKey = ValueKey("SettingsMenu");
 
 Widget Function(BuildContext, UpdateParentState) _buildSettingsWidget = (context, updateParentState) {
   return IconButton(
@@ -101,7 +69,7 @@ Widget Function(BuildContext, UpdateParentState) _buildSettingsWidget = (context
     color: Theme.of(context).primaryColor,
     onPressed: () {
       updateParentState.call(() {
-        settingsMenuHelper.interactWithOverlay(context, updateParentState);
+        dataManager.getOverlayHelperSafe(settingsKey).openOverlay(context, updateParentState);
       });
     },
   );
@@ -112,6 +80,10 @@ Widget Function(BuildContext, UpdateParentState) _buildSettingsWidget = (context
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 class MyApp extends StatefulWidget {
+
+  MyApp(){
+    dataManager.createAndRegisterOverlayHelper(settingsKey, (UpdateParentState method, {List<dynamic>? inputs}) => ((context) => SettingsWidget(settingsKey, method)), overwriteAccess: false);
+  }
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -127,7 +99,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Welcome to Flutter',
+      //title: 'Welcome to Flutter',
       themeMode: ThemeHandler.getThemeMode(),
       theme: ThemeHandler.themeData(),
       darkTheme: ThemeHandler.darkThemeData(),
@@ -137,9 +109,9 @@ class _MyAppState extends State<MyApp> {
       ],
     );
   }
-
 }
 
+//-----------------------------------
 
 class MainPageWidget extends StatefulWidget {
 
@@ -156,7 +128,7 @@ class MainPageState extends State<MainPageWidget> with RouteAware {
       child: Scaffold(
         appBar: AppBar(
           title: Container(
-            child: Text("Thing Picker",
+            child: Text("Probabilis",
               textScaleFactor: 0.8,
               style: TextStyle(color: ThemeHandler.getContrastedColor(context) ?? ThemeHandler.checkThemeMode(context, Theme.of(context).primaryColor, null)),
             ),
@@ -184,6 +156,8 @@ class MainPageState extends State<MainPageWidget> with RouteAware {
                   onPressed: () async {
                     currentManager = allManagers[index];
 
+                    currentFlUser.initUser(currentManager!);
+
                     TextLogger.consoleOutput(currentManager.toString(), debugOut: true);
 
                     currentImageManager = ImageManager.getOrCreateManager(currentManager!);
@@ -209,7 +183,7 @@ class MainPageState extends State<MainPageWidget> with RouteAware {
         ),
       ),
       onTap: () {
-        if(settingsMenuHelper.removeOverlay(forcedClosed: true)) settingsMenuHelper.toggleOverlay();
+        dataManager.getOverlayHelperSafe(settingsKey).closeOverlay();
       },
     );
   }
@@ -230,42 +204,49 @@ class MainPageState extends State<MainPageWidget> with RouteAware {
 
   @override
   void didPushNext() {
-    if(settingsMenuHelper.removeOverlay(forcedClosed: true)) settingsMenuHelper.toggleOverlay();
+    dataManager.getOverlayHelperSafe(settingsKey).closeOverlay();
   }
 }
 
 //--------------------------------------------------------------------------------
 
 class ManagerPageWidget extends StatefulWidget {
-  
+
+  static bool linkOverlays = false;
+
+  static GlobalKey managerPageKey = LabeledGlobalKey("manager_widget");
+
+  static Key presentMenuKey = ValueKey("PresetMenu");
+  static Key filterMenuKey = ValueKey("FilterMenu");
+  static Key pickMenuKey = ValueKey("PickMenu");
+
+  static List<OverlayHelper> overlays = [
+    dataManager.getOverlayHelperSafe(presentMenuKey),
+    dataManager.getOverlayHelperSafe(filterMenuKey),
+    dataManager.getOverlayHelperSafe(pickMenuKey),
+    dataManager.getOverlayHelperSafe(settingsKey)
+  ];
+
+  ManagerPageWidget() : super(key: managerPageKey){
+    dataManager.createAndRegisterOverlayHelper(presentMenuKey, (UpdateParentState method, {List<dynamic>? inputs}) => ((context) => SelectionMenuWidget(presentMenuKey, method, CustomListTypes.preset)), overwriteAccess: false);
+    dataManager.createAndRegisterOverlayHelper(filterMenuKey, (UpdateParentState method, {List<dynamic>? inputs}) => ((context) => SelectionMenuWidget(filterMenuKey, method, CustomListTypes.filter)), overwriteAccess: false);
+    dataManager.createAndRegisterOverlayHelper(pickMenuKey, (UpdateParentState method, {List<dynamic>? inputs}) => ((context) => PickedThingWidget(pickMenuKey)), overwriteAccess: false);
+
+    if(!linkOverlays) {
+      OverlayHelper.linkHelpers(overlays, overlayKeys: [SelectionMenuWidget.createMenuKey]);
+
+      linkOverlays = true;
+    }
+  }
+
   @override State<StatefulWidget> createState() => ManagerPageState();
 
 }
 
 class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
 
-  static bool linkOverlays = false;
+  static void setStateTest(BuildContext context){
 
-  static OverlayHelper presetMenuHelper = OverlayHelper(LabeledGlobalKey("PresetMenu"),
-      (UpdateParentState updateStateMethod) => OverlayEntry(builder: (context) => SelectionMenuWidget(updateStateMethod, CustomListTypes.preset))
-  );
-
-  static OverlayHelper filterMenuHelper = OverlayHelper(LabeledGlobalKey("FilterMenu"),
-      (UpdateParentState updateStateMethod) => OverlayEntry(builder: (context) => SelectionMenuWidget(updateStateMethod, CustomListTypes.filter))
-  );
-
-  static OverlayHelper pickMenuHelper = OverlayHelper(LabeledGlobalKey("PickMenu"),
-      (UpdateParentState updateStateMethod) => OverlayEntry(builder: (context) => PickedThingWidget())
-  );
-
-  static List<OverlayHelper> overlays = [presetMenuHelper, filterMenuHelper, pickMenuHelper, settingsMenuHelper];
-
-  ManagerPageState(){
-    if(!linkOverlays) {
-      OverlayHelper.linkHelpers(overlays);
-
-      linkOverlays = true;
-    }
   }
 
   @override
@@ -297,12 +278,20 @@ class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
             ),
             onPressed: () {
               setState(() {
-                pickMenuHelper.interactWithOverlay(context, setState);
+                OverlayHelper helper = dataManager.getOverlayHelperSafe(ManagerPageWidget.pickMenuKey);
+
+                if(!helper.isOverlayVisible) {
+                  helper.openOverlay(context, setState);
+                } else {
+                  if(helper.interactMethodFunction != null) {
+                    helper.interactMethodFunction!.call();
+                  }
+                }
               });
             },
             backgroundColor: Theme.of(context).primaryColor,
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,//FloatingActionButtonLocation.centerDocked,
           bottomNavigationBar: BottomAppBar(
             // Fix for issue with notch in debug env
             shape: !kDebugMode ? CircularNotchedRectangle() : null,
@@ -311,12 +300,17 @@ class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
               children:[
                 Container (
                   child: TextButton (
-                    key: filterMenuHelper.overlayKey,
                     child: Text (
                       "Filters",
                       style: TextStyle(color: ThemeHandler.getContrastedColor(context)),
                     ),
-                    onPressed: () => setState(() => filterMenuHelper.interactWithOverlay(context, setState)),
+                    onPressed: () => setState(() {
+                      if(!dataManager.getOverlayHelperSafe(SelectionMenuWidget.createMenuKey).closeOverlay()) {
+                        dataManager.removeOverlayHelper(SelectionMenuWidget.createMenuKey);
+                      }
+
+                      dataManager.getOverlayHelperSafe(ManagerPageWidget.filterMenuKey).openOverlay(context, setState);
+                    }),
                     style: ThemeHandler.whiteTextButtonStyle(),
                   ),
                   margin: EdgeInsets.only(top: 8.0, bottom: 8.0),
@@ -325,12 +319,17 @@ class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
                 Container (width: 60, height: 0),
                 Container (
                   child: TextButton (
-                    key: presetMenuHelper.overlayKey,
                     child: Text (
                       "Presets",
                       style: TextStyle(color: ThemeHandler.getContrastedColor(context)),
                     ),
-                    onPressed: () => setState(() => presetMenuHelper.interactWithOverlay(context, setState)),
+                    onPressed: () => setState(() {
+                      if(!dataManager.getOverlayHelperSafe(SelectionMenuWidget.createMenuKey).closeOverlay()) {
+                        dataManager.removeOverlayHelper(SelectionMenuWidget.createMenuKey);
+                      }
+
+                      dataManager.getOverlayHelperSafe(ManagerPageWidget.presentMenuKey).openOverlay(context, setState);
+                    }),
                     style: ThemeHandler.whiteTextButtonStyle(),
                   ),
                   margin: EdgeInsets.only(top: 8.0, bottom: 8.0),
@@ -367,10 +366,8 @@ class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
   }
 
   void closeAllOverlays(){
-    for (var overlay in overlays) {
-      if(overlay.removeOverlay(forcedClosed: true)) {
-        overlay.toggleOverlay();
-      }
+    for(Key key in dataManager.overlayMap.keys.toSet()){
+      dataManager.getOverlayHelper(key)!.closeOverlay();
     }
   }
 }
@@ -381,7 +378,7 @@ class SettingsWidget extends StatefulWidget{
 
   final UpdateParentState updateStateMethod;
 
-  SettingsWidget(this.updateStateMethod);
+  SettingsWidget(Key key, this.updateStateMethod) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _SettingsState();

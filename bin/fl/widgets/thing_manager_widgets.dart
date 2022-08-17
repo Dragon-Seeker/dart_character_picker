@@ -1,8 +1,8 @@
 import 'dart:math';
 
+import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/material.dart';
 
-import '../../common/data/filters.dart';
 import '../../common/data/thing.dart';
 import '../../common/thing_manager.dart';
 import '../../common/util/string_utils.dart';
@@ -10,7 +10,6 @@ import '../fl_main.dart';
 import 'overlay_helper.dart';
 import '../data/imageManager.dart';
 import 'ui_data/theme_data.dart';
-
 
 /// Main widget that displays all the Entry within the loaded [ThingManager]
 class ThingManagerWidget extends StatefulWidget {
@@ -172,211 +171,15 @@ class ThingManagerState extends State<ThingManagerWidget> with AutomaticKeepAliv
 
 //---------------------------------------------------------------------------------------------
 
-/// Selection menu for Both Filters and Presets within the given [currentThing]
-class SelectionMenuWidget extends StatefulWidget{
 
-  final UpdateParentState updateStateMethod;
-  final CustomListTypes type;
-
-  SelectionMenuWidget(this.updateStateMethod, this.type);
-
-  @override
-  State<StatefulWidget> createState() => SelectionMenuState();
-
-}
-
-/// Selection menu for Both Filters and Presets within the given [currentThing]
-class SelectionMenuState<T extends Named> extends State<SelectionMenuWidget>{
-
-  late List<T> listOfEntries;
-
-  SelectionMenuState(){
-    listOfEntries = widget.type.getList(currentManager!, currentFlUser) as List<T>;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BackdropFilter(filter: ColorFilter.mode(Colors.black38, BlendMode.darken),
-      child: Transform.scale(scale: getScaleValue(context, 0.65, 0.90),//0.65,
-        child: FittedBox(
-          child: Card(
-            child: FittedBox(
-              child: Container(
-                child: Column(
-                  children: [
-                    Material(
-                      child: Container(
-                        child: Row(
-                          children: [
-                            Container(
-                              child: TextButton(
-                                child: Text(
-                                  "Add",
-                                  style: TextStyle(color: ThemeHandler.getContrastedColor(context) ?? Colors.white),
-                                ),
-                                onPressed: () {},
-                              ),
-                              margin: EdgeInsets.all(4.0),
-                              decoration: ThemeHandler.basicDecoration(context),
-                            ),
-                            Container(
-                              child: TextButton(
-                                child: Text(
-                                  "Remove",
-                                  style: TextStyle(color: ThemeHandler.getContrastedColor(context) ?? Colors.white),
-                                ),
-                                onPressed: () {},
-                              ),
-                              margin: EdgeInsets.all(4.0),
-                              decoration: ThemeHandler.basicDecoration(context),
-                            ),
-                            Container (
-                              child: TextButton (
-                                child: Text (
-                                  "Create",
-                                  style: TextStyle(color: ThemeHandler.getContrastedColor(context) ?? Colors.white),
-                                ),
-                                onPressed: () {},
-                              ),
-                              margin: EdgeInsets.all(4.0),
-                              decoration: ThemeHandler.basicDecoration(context),
-                            ),
-                          ],
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: ThemeHandler.basicRadius(),
-                          color: Theme.of(context).brightness == Brightness.light ? Colors.white12 : null
-                        ),
-                        constraints: BoxConstraints (
-                          maxWidth: 250,
-                          maxHeight: 300
-                        ),
-                      ),
-                      // elevation: 10,
-                      borderRadius: ThemeHandler.basicRadius(),
-                    ),
-                    //TODO: FIX DIVIDER!!!
-                    Divider(
-                      height: 10.0,
-                    ),
-                    Material(
-                      child: Container(
-                        child: ListView.separated(
-                          itemCount: listOfEntries.length,
-                          itemBuilder: getNameEntryWidget,
-                          shrinkWrap: true,
-                          separatorBuilder: (context, index) => Divider(),
-                          padding: EdgeInsets.zero,
-                        ),
-                        constraints: BoxConstraints(
-                            maxWidth: 250,
-                            maxHeight: 300
-                        ),
-                        padding: EdgeInsets.all(4.0),
-                      ),
-                      //color: Theme.of(context).brightness == Brightness.light ? Colors.black26 : null,
-                      borderRadius: ThemeHandler.basicRadius(),
-                    ),
-                  ],
-                ),
-                padding: EdgeInsets.all(10.0),
-              ),
-            ),
-            color: Theme.of(context).brightness == Brightness.light ? Color.alphaBlend(Theme.of(context).primaryColor.withAlpha(100), Colors.white) : null,
-            elevation: 20.0,
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Method to get a CustomWidget for a Named Entry from a given Index
-  Widget getNameEntryWidget(BuildContext context, int index) {
-    Named entry = listOfEntries[index];
-
-    //-----------------------------------------
-
-    Container nameTextWidget = Container(
-      child: Text(
-        entry.getFormattedName(),
-        style: TextStyle(color: ThemeHandler.getContrastedColor(context) ?? Colors.white, fontWeight: FontWeight.w500),
-      ),
-      margin: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-      padding: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-      decoration: ThemeHandler.basicDecoration(context),
-    );
-
-    //-----------------------------------------
-
-    Map<String, String> extraStringData = {};
-
-    if(entry is AbstractFilter){
-      extraStringData = entry.getExtraStringData();
-    } else if (entry is Preset){
-      extraStringData = entry.getExtraStringData();
-    } else {
-      return Container();
-    }
-
-    Column columnExtraData = Column(
-      children: extraStringData.entries.map((entry) {
-        Text textWidget = Text(
-          "${entry.key} : ${entry.value}",
-          style: TextStyle(color: ThemeHandler.getContrastedColor(context),
-            fontWeight: FontWeight.w500,
-            fontSize: 13
-          ),
-        );
-
-        return textWidget;
-      }).toList(),
-    );
-
-    //-----------------------------------------
-
-    return Center(
-      child: FittedBox(
-        child: Container(
-          child: ElevatedButton(
-            child: Column(
-              children: [
-                Container(
-                  child: nameTextWidget,
-                  padding: EdgeInsets.only(bottom: 6.0),
-                ),
-                Container(child: columnExtraData)
-              ],
-            ),
-            style: ElevatedButton.styleFrom(
-              primary: Colors.black26, // Theme.of(context).brightness == Brightness.light ? Colors.black26 : null,
-              padding: EdgeInsets.all(20.0),
-              shape: currentFlUser.isActiveFilterOrPreset(entry) ? RoundedRectangleBorder(
-                side: BorderSide(
-                  color: Theme.of(context).primaryColor, width: 2.0),
-                  borderRadius: ThemeHandler.basicRadius()
-              ) : null,
-            ),
-            onPressed: () => setState(() {
-              widget.type.toggleEntry(currentFlUser, entry);
-              widget.updateStateMethod.call(() {});
-            }),
-          ),
-          margin: EdgeInsets.only(left: 6, right: 6, top: 2, bottom: 2),
-          // decoration: basicDecoration().copyWith(color: Colors.white24, border: border), //Colors.blue[800]
-          width: 250,
-        ),
-      ),
-    );
-  }
-}
 
 //----------------------------------------------------------------------
 
 ///Main widget used to display the randomly Selected Thing from the [currentManager]
 class PickedThingWidget extends StatefulWidget{
 
-  PickedThingWidget();
+  PickedThingWidget(Key key) : super(key: key);
+
 
   @override
   State<StatefulWidget> createState() => PickedThingState();
@@ -390,12 +193,14 @@ class PickedThingState extends State<PickedThingWidget>{
 
   Thing? randomlyPickedThing;
 
-  PickedThingState();
+  PickedThingState(){
+    dataManager.getOverlayHelperSafe(ManagerPageWidget.pickMenuKey).interactMethodFunction = () => setState(() => randomlyPickedThing = null);
+  }
 
   @override
   Widget build(BuildContext context) {
     return BackdropFilter(filter: ColorFilter.mode(Colors.black38, BlendMode.darken),
-      child: Transform.scale(scale: getScaleValue(context, 0.4, 0.8),//0.4 * (MediaQuery.of(context).size.width / 1000),
+      child:Transform.scale(scale: getScaleValue(context, 0.4, 0.8),//0.4 * (MediaQuery.of(context).size.width / 1000),
         child: GestureDetector(
           child: FittedBox(
             child: Card(

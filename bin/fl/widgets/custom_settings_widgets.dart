@@ -84,8 +84,8 @@ class _CustomColorSettingsState extends State<CustomColorSettingsWidget>{
   void dispose() {
     super.dispose();
 
-    if(colorMenuHelper != null && colorMenuHelper!.removeOverlay(forcedClosed: true)) {
-      colorMenuHelper!.toggleOverlay();
+    if(colorMenuHelper != null) {
+      colorMenuHelper!.closeOverlay();
     }
   }
 
@@ -114,7 +114,7 @@ class _CustomColorSettingsState extends State<CustomColorSettingsWidget>{
             color: currentDisplayedColor,
             onSelectFocus: false,
             onSelect: () async {
-              colorMenuHelper = OverlayHelper(LabeledGlobalKey("ColorMenu"), (UpdateParentState updateStateMethod) {
+              colorMenuHelper = OverlayHelper(LabeledGlobalKey("ColorMenu"), (UpdateParentState updateStateMethod, {List<dynamic>? inputs}) {
                 return OverlayEntry(
                     builder: (context) {
                       return colorPickerDialog(context, updateStateMethod, value, onChanged);
@@ -122,39 +122,11 @@ class _CustomColorSettingsState extends State<CustomColorSettingsWidget>{
                 );
               });
 
-              colorMenuHelper!.interactWithOverlay(context, setState);
+              colorMenuHelper!.openOverlay(context, setState);
             },
           ),
         )
       );
-
-      // return Material(
-      //   child: ListTile(
-      //     title: const Text('Click this color to change it in a dialog'),
-      //     subtitle: Text(
-      //       '${ColorTools.materialNameAndCode(colorData.left)} aka ${ColorTools.nameThatColor(colorData.left)}',
-      //     ),
-      //     trailing: ColorIndicator(
-      //       width: 44,
-      //       height: 44,
-      //       borderRadius: 4,
-      //       color: colorData.left,
-      //       onSelectFocus: false,
-      //       onSelect: () async {
-      //         colorMenuHelper = OverlayHelper(LabeledGlobalKey("ColorMenu"), (UpdateParentState updateStateMethod) {
-      //           return OverlayEntry(
-      //               builder: (context) {
-      //                 return colorPickerDialog(context, updateStateMethod, value, onChanged);
-      //               }
-      //           );
-      //         })..doWhenForcedClose = () => (colorData.right = null);
-      //
-      //         colorMenuHelper.interactWithOverlay(context, setState);
-      //       },
-      //     ),
-      //   ),
-      //   borderRadius: BorderRadius.circular(5.0),
-      // );
     });
   }
 
@@ -165,9 +137,7 @@ class _CustomColorSettingsState extends State<CustomColorSettingsWidget>{
   }
 
   void closeOverlayOk(OnChanged<Color> onChanged) {
-    if(colorMenuHelper!.removeOverlay()) {
-      colorMenuHelper!.toggleOverlay();
-    }
+    colorMenuHelper!.closeOverlay();
 
     debugPrint("Ok Button Color Saved: $currentDisplayedColor");
 
@@ -178,9 +148,7 @@ class _CustomColorSettingsState extends State<CustomColorSettingsWidget>{
   }
 
   void closeOverlayCancel() {
-    if(colorMenuHelper!.removeOverlay()) {
-      colorMenuHelper!.toggleOverlay();
-    }
+    colorMenuHelper!.closeOverlay();
 
     currentDisplayedColor = Settings.getValue<Color>(widget.settingKey) ?? widget.defaultValue;
 

@@ -133,7 +133,7 @@ class ThingManager with Filterable {
 
 typedef PresetManipulator<T> = void Function(User, T);
 
-enum CustomListTypes<T extends Named> {
+enum CustomListTypes<T> {
   filter,
   preset;
 
@@ -184,7 +184,6 @@ enum CustomListTypes<T extends Named> {
       }
     }
   }
-
 }
 
 abstract class Filterable {

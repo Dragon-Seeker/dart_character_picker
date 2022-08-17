@@ -1,81 +1,125 @@
 
 import 'package:flutter/cupertino.dart';
 
+import '../../common/util/string_utils.dart';
+import '../fl_main.dart';
+
 typedef UpdateParentState = void Function(void Function());
 
+///
+/// Class Used to better manage Overlay Entry's
+///
 class OverlayHelper {
 
-  static int numberOfLinkedHelpers = 0;
+  static final Key _emptyHelperKey = ValueKey("EMPTY_HELPER");
 
-  static Map<String, List<OverlayHelper>> linkedOverlays = {};
+  static int _numberOfLinkedHelpers = 0;
 
-  //-----------------------
-
-  GlobalKey overlayKey;
-
-  bool isOverlayVisible = false;
-
-  OverlayEntry Function(UpdateParentState updateStateMethod) overlayBuilder;
+  static Map<String, List<Key>> linkedOverlays = {};
 
   //-----------------------
 
-  OverlayEntry? overlayEntry;
+  Key overlayKey;
 
   String linkedId = "none";
 
-  void Function()? doWhenForcedClose;
+  OverlayEntry? overlayEntry;
+
+  bool isOverlayVisible = false;
+
+  bool removeOnClose = false;
 
   //-----------------------
 
-  OverlayHelper(this.overlayKey, this.overlayBuilder);
+  OverlayEntry? Function(UpdateParentState updateStateMethod, {List<dynamic>? inputs}) overlayBuilder;
 
-  static void linkHelpers(List<OverlayHelper> helpers){
+  void Function()? interactMethodFunction;
+
+  //-----------------------
+
+  OverlayHelper(this.overlayKey, this.overlayBuilder, {Key? linkedOverlay, this.removeOnClose = false}){
+    if(linkedOverlay != null){
+      linkedId = dataManager.getOverlayHelperSafe(linkedOverlay).linkedId;
+    }
+  }
+
+  static void linkHelpers(List<OverlayHelper> helpers, { List<Key> overlayKeys = const[] }){
     for(OverlayHelper helper in helpers){
-      helper.linkedId = "LinkedHelpersGroup$numberOfLinkedHelpers";
+      helper.linkedId = "LinkedHelpersGroup$_numberOfLinkedHelpers";
     }
 
-    linkedOverlays["LinkedHelpersGroup$numberOfLinkedHelpers"] = helpers;
+    linkedOverlays["LinkedHelpersGroup$_numberOfLinkedHelpers"] = overlayKeys..addAll(helpers.map((e) => e.overlayKey));
 
-    numberOfLinkedHelpers++;
+    _numberOfLinkedHelpers++;
+  }
+
+  static OverlayHelper emptyOverlayHelper(void Function() outputFunction){
+    return OverlayHelper(_emptyHelperKey, (updateStateMethod, {List<dynamic>? inputs}) {
+      outputFunction.call();
+
+      return null;
+    });
   }
 
   //-----------------------
-  void interactWithOverlay(BuildContext context, void Function(void Function()) updateStateMethod){
-    if(!removeOverlay(forcedClosed: true)){
-      List<OverlayHelper> helpers = linkedOverlays[linkedId] ?? [];
 
-      for(OverlayHelper helper in helpers){
-        if(helper.removeOverlay()){
-          helper.toggleOverlay();
-        }
+  bool openOverlay(BuildContext context, UpdateParentState updateStateMethod, {List<dynamic> inputs = const []}){
+    if(!closeOverlay()){
+      for(Key key in linkedOverlays[linkedId] ?? []){
+        if(key == overlayKey) continue;
+
+        dataManager.getOverlayHelper(key)?.closeOverlay();
       }
 
-      overlayEntry = overlayBuilder.call(updateStateMethod);
+      overlayEntry = overlayBuilder.call(updateStateMethod, inputs: inputs);
 
-      Overlay.of(context)!.insert(overlayEntry!);
-    }
+      if(overlayEntry != null) Overlay.of(context)!.insert(overlayEntry!);
 
-    toggleOverlay();
-  }
-
-  void toggleOverlay(){
-    isOverlayVisible = !isOverlayVisible;
-  }
-
-  bool removeOverlay({bool forcedClosed = false}){
-    if(isOverlayVisible) {
-      if(overlayEntry != null) {
-        if(forcedClosed){
-          doWhenForcedClose?.call();
-        }
-
-        overlayEntry!.remove();
-      }
+      toggleOverlayVisablity();
 
       return true;
     }
 
     return false;
   }
+
+  bool closeOverlay(){
+    if(isOverlayVisible) {
+      if(overlayEntry != null) {
+        overlayEntry!.remove();
+      }
+
+      if(removeOnClose){
+        dataManager.removeOverlayHelper(overlayKey);
+      }
+
+      toggleOverlayVisablity();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  void closeAllLinkedOverlays(){
+    if(linkedId != "none"){
+      for(Key key in linkedOverlays[linkedId] ?? []){
+        dataManager.getOverlayHelper(key)?.closeOverlay();
+      }
+    }
+  }
+
+  bool toggleOverlayVisablity(){
+    isOverlayVisible = !isOverlayVisible;
+
+    TextLogger.consoleOutput("{} was just Toggled to: {}", args: [overlayKey, isOverlayVisible]);
+
+    return isOverlayVisible;
+  }
+
+  bool isAnEmptyOverlay(){
+    return overlayKey == _emptyHelperKey;
+  }
+
 
 }
