@@ -74,7 +74,7 @@ class MultiConfigCache extends CacheProvider{
 
   @override
   T? getValue<T>(String key, {T? defaultValue}) {
-    debugPrint("Key: $key");
+    //debugPrint("Key: $key");
 
     for(ConfigData configData in caches){
       if(configData.containsKey(key)) {
@@ -109,7 +109,7 @@ class MultiConfigCache extends CacheProvider{
 
   @override
   Future<void> setObject<T>(String key, T? value) async {
-    debugPrint(key);
+    //debugPrint(key);
 
     for(ConfigData configData in caches){
       if(configData.containsKey(key)) {
