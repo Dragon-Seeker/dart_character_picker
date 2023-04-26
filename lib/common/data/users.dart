@@ -67,14 +67,22 @@ class User with Filterable {
     usersActiveManagers[this] = manager;
   }
 
-  Preset createPreset(String presetName, List<AbstractFilter> filters){
-    Preset userPreset = Preset(presetName, filters);
+  bool createPreset(String presetName, ThingManager manager, List<AbstractFilter> filters){
+    if(manager.getPreset(presetName, user: this) == Preset.emptyPreset) {
+      Preset userPreset = Preset(presetName, filters);
 
-    presets.add(userPreset);
+      presets.add(userPreset);
 
-    TextLogger.consoleOutput("Created ${userPreset.getFormattedName()} for $userName!");
+      TextLogger.consoleOutput("Created ${userPreset.getFormattedName()} for $userName!");
 
-    return userPreset;
+      return true;
+    }
+
+    return false;
+  }
+
+  Preset getUserPreset(String presetId){
+    return presets.firstWhere((element) => element.id == presetId, orElse: () => Preset.emptyPreset);
   }
 
   void addFilter(AbstractFilter filter){

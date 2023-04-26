@@ -833,8 +833,11 @@ class PresetCreateCommand extends Command<bool> {
       }
     }
 
-    user.currentPreset = user.createPreset(presetId, filters);
-    user.savePresets(manager);
+    if(user.createPreset(presetId, manager, filters)){
+      user.currentPreset = user.presets.firstWhere((element) => element.id == presetId);
+      user.savePresets(manager);
+    }
+
 
     return false;
   }

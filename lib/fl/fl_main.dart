@@ -21,10 +21,10 @@ import 'data/file_helper.dart';
 import 'fl_thing_manager.dart';
 import 'widgets/selection_menu_widget.dart';
 import 'widgets/thing_manager_widgets.dart';
-import 'widgets/overlay_helper.dart';
+import 'widgets/util/overlay_helper.dart';
 import 'data/imageManager.dart';
 import 'widgets/ui_data/theme_data.dart';
-import 'widgets/custom_settings_widgets.dart';
+import 'widgets/custom_impl/custom_settings_widgets.dart';
 
 bool showPresetAndFilterData = false;
 
@@ -80,20 +80,19 @@ Widget Function(BuildContext, UpdateParentState) _buildSettingsWidget = (context
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 class MyApp extends StatefulWidget {
+  static final snackBarKey = LabeledGlobalKey<ScaffoldMessengerState>("snackBar");
 
-  MyApp(){
-    dataManager.createAndRegisterOverlayHelper(settingsKey, (UpdateParentState method, {List<dynamic>? inputs}) => ((context) => SettingsWidget(settingsKey, method)), overwriteAccess: false);
+  MyApp() {
+    dataManager.createAndRegisterOverlayHelper(settingsKey, (UpdateParentState method, {Map<String, dynamic>? inputs}) => ((context) => SettingsWidget(settingsKey, method)), overwriteAccess: false);
   }
 
   @override
   _MyAppState createState() => _MyAppState();
 
-  static _MyAppState of(BuildContext context) =>
-      context.findAncestorStateOfType<_MyAppState>()!;
+  static _MyAppState of(BuildContext context) => context.findAncestorStateOfType<_MyAppState>()!;
 }
 
 class _MyAppState extends State<MyApp> {
-
   _MyAppState();
 
   @override
@@ -104,9 +103,8 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeHandler.themeData(),
       darkTheme: ThemeHandler.darkThemeData(),
       home: MainPageWidget(),
-      navigatorObservers: [
-        routeObserver
-      ],
+      scaffoldMessengerKey: MyApp.snackBarKey,
+      navigatorObservers: [routeObserver],
     );
   }
 }
@@ -114,33 +112,26 @@ class _MyAppState extends State<MyApp> {
 //-----------------------------------
 
 class MainPageWidget extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() => MainPageState();
-
 }
 
 class MainPageState extends State<MainPageWidget> with RouteAware {
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       child: Scaffold(
         appBar: AppBar(
           title: Container(
-            child: Text("Probabilis",
+            child: Text(
+              "Probabilis",
               textScaleFactor: 0.8,
               style: TextStyle(color: ThemeHandler.getContrastedColor(context) ?? ThemeHandler.checkThemeMode(context, Theme.of(context).primaryColor, null)),
             ),
-            padding: EdgeInsets.all(6.0),//EdgeInsets.only(left: 4.0, right: 4.0, top: 1.0, bottom: 1.0),
-            decoration: BoxDecoration(
-                borderRadius: ThemeHandler.basicRadius(),
-                color: ThemeHandler.checkThemeMode(context, Colors.white, Theme.of(context).primaryColor)
-            ),
+            padding: EdgeInsets.all(6.0), //EdgeInsets.only(left: 4.0, right: 4.0, top: 1.0, bottom: 1.0),
+            decoration: BoxDecoration(borderRadius: ThemeHandler.basicRadius(), color: ThemeHandler.checkThemeMode(context, Colors.white, Theme.of(context).primaryColor)),
           ),
-          actions: [
-            _buildSettingsWidget.call(context, setState)
-          ],
+          actions: [_buildSettingsWidget.call(context, setState)],
           backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : null, //Theme.of(context).primaryColor,
         ),
         body: Container(
@@ -162,12 +153,9 @@ class MainPageState extends State<MainPageWidget> with RouteAware {
 
                     currentImageManager = ImageManager.getOrCreateManager(currentManager!);
 
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                          return ManagerPageWidget();
-                        }
-                      )
-                    );
+                    Navigator.push(context, MaterialPageRoute(builder: (context) {
+                      return ManagerPageWidget();
+                    }));
                   },
                   style: TextButton.styleFrom(padding: EdgeInsets.all(32.0)).merge(ThemeHandler.whiteTextButtonStyle()),
                 ),
@@ -211,7 +199,6 @@ class MainPageState extends State<MainPageWidget> with RouteAware {
 //--------------------------------------------------------------------------------
 
 class ManagerPageWidget extends StatefulWidget {
-
   static bool linkOverlays = false;
 
   static GlobalKey managerPageKey = LabeledGlobalKey("manager_widget");
@@ -227,32 +214,33 @@ class ManagerPageWidget extends StatefulWidget {
     dataManager.getOverlayHelperSafe(settingsKey)
   ];
 
-  ManagerPageWidget() : super(key: managerPageKey){
-    dataManager.createAndRegisterOverlayHelper(presentMenuKey, (UpdateParentState method, {List<dynamic>? inputs}) => ((context) => SelectionMenuWidget(presentMenuKey, method, CustomListTypes.preset)), overwriteAccess: false);
-    dataManager.createAndRegisterOverlayHelper(filterMenuKey, (UpdateParentState method, {List<dynamic>? inputs}) => ((context) => SelectionMenuWidget(filterMenuKey, method, CustomListTypes.filter)), overwriteAccess: false);
-    dataManager.createAndRegisterOverlayHelper(pickMenuKey, (UpdateParentState method, {List<dynamic>? inputs}) => ((context) => PickedThingWidget(pickMenuKey)), overwriteAccess: false);
+  ManagerPageWidget() : super(key: managerPageKey) {
+    dataManager.createAndRegisterOverlayHelper(
+        presentMenuKey, (UpdateParentState method, {Map<String, dynamic>? inputs}) => ((context) => SelectionMenuWidget(presentMenuKey, method, CustomListTypes.preset)),
+        overwriteAccess: false);
+    dataManager.createAndRegisterOverlayHelper(
+        filterMenuKey, (UpdateParentState method, {Map<String, dynamic>? inputs}) => ((context) => SelectionMenuWidget(filterMenuKey, method, CustomListTypes.filter)),
+        overwriteAccess: false);
+    dataManager.createAndRegisterOverlayHelper(pickMenuKey, (UpdateParentState method, {Map<String, dynamic>? inputs}) => ((context) => PickedThingWidget(pickMenuKey)), overwriteAccess: false);
 
-    if(!linkOverlays) {
+    if (!linkOverlays) {
       OverlayHelper.linkHelpers(overlays, overlayKeys: [SelectionMenuWidget.createMenuKey]);
 
       linkOverlays = true;
     }
   }
 
-  @override State<StatefulWidget> createState() => ManagerPageState();
-
+  @override
+  State<StatefulWidget> createState() => ManagerPageState();
 }
 
 class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
-
-  static void setStateTest(BuildContext context){
-
-  }
+  static void setStateTest(BuildContext context) {}
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea (
-      child: GestureDetector (
+    return SafeArea(
+      child: GestureDetector(
         child: Scaffold(
           appBar: AppBar(
             title: Container(
@@ -264,9 +252,7 @@ class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
               padding: EdgeInsets.all(6.0),
               decoration: ThemeHandler.basicDecoration(context),
             ),
-            actions: [
-              _buildSettingsWidget.call(context, setState)
-            ],
+            actions: [_buildSettingsWidget.call(context, setState)],
             backgroundColor: ThemeHandler.checkThemeMode(context, Colors.white, null),
             iconTheme: IconTheme.of(context).copyWith(color: Theme.of(context).primaryColor),
           ),
@@ -280,10 +266,10 @@ class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
               setState(() {
                 OverlayHelper helper = dataManager.getOverlayHelperSafe(ManagerPageWidget.pickMenuKey);
 
-                if(!helper.isOverlayVisible) {
+                if (!helper.isOverlayVisible) {
                   helper.openOverlay(context, setState);
                 } else {
-                  if(helper.interactMethodFunction != null) {
+                  if (helper.interactMethodFunction != null) {
                     helper.interactMethodFunction!.call();
                   }
                 }
@@ -291,21 +277,21 @@ class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
             },
             backgroundColor: Theme.of(context).primaryColor,
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,//FloatingActionButtonLocation.centerDocked,
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked, //FloatingActionButtonLocation.centerDocked,
           bottomNavigationBar: BottomAppBar(
             // Fix for issue with notch in debug env
             shape: !kDebugMode ? CircularNotchedRectangle() : null,
             notchMargin: 10,
             child: Row(
-              children:[
-                Container (
-                  child: TextButton (
-                    child: Text (
+              children: [
+                Container(
+                  child: TextButton(
+                    child: Text(
                       "Filters",
                       style: TextStyle(color: ThemeHandler.getContrastedColor(context)),
                     ),
                     onPressed: () => setState(() {
-                      if(!dataManager.getOverlayHelperSafe(SelectionMenuWidget.createMenuKey).closeOverlay()) {
+                      if (!dataManager.getOverlayHelperSafe(SelectionMenuWidget.createMenuKey).closeOverlay()) {
                         dataManager.removeOverlayHelper(SelectionMenuWidget.createMenuKey);
                       }
 
@@ -314,17 +300,17 @@ class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
                     style: ThemeHandler.whiteTextButtonStyle(),
                   ),
                   margin: EdgeInsets.only(top: 8.0, bottom: 8.0),
-                  decoration: ThemeHandler.basicDecoration(context),//.copyWith(color: Colors.red),
+                  decoration: ThemeHandler.basicDecoration(context), //.copyWith(color: Colors.red),
                 ),
-                Container (width: 60, height: 0),
-                Container (
-                  child: TextButton (
-                    child: Text (
+                Container(width: 60, height: 0),
+                Container(
+                  child: TextButton(
+                    child: Text(
                       "Presets",
                       style: TextStyle(color: ThemeHandler.getContrastedColor(context)),
                     ),
                     onPressed: () => setState(() {
-                      if(!dataManager.getOverlayHelperSafe(SelectionMenuWidget.createMenuKey).closeOverlay()) {
+                      if (!dataManager.getOverlayHelperSafe(SelectionMenuWidget.createMenuKey).closeOverlay()) {
                         dataManager.removeOverlayHelper(SelectionMenuWidget.createMenuKey);
                       }
 
@@ -333,7 +319,7 @@ class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
                     style: ThemeHandler.whiteTextButtonStyle(),
                   ),
                   margin: EdgeInsets.only(top: 8.0, bottom: 8.0),
-                  decoration: ThemeHandler.basicDecoration(context),//.copyWith(color: Colors.red),
+                  decoration: ThemeHandler.basicDecoration(context), //.copyWith(color: Colors.red),
                 ),
               ],
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -365,8 +351,8 @@ class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
     closeAllOverlays();
   }
 
-  void closeAllOverlays(){
-    for(Key key in dataManager.overlayMap.keys.toSet()){
+  void closeAllOverlays() {
+    for (Key key in dataManager.overlayMap.keys.toSet()) {
       dataManager.getOverlayHelper(key)!.closeOverlay();
     }
   }
@@ -374,76 +360,76 @@ class ManagerPageState extends State<ManagerPageWidget> with RouteAware {
 
 //---------------------------------------------------------------------------
 
-class SettingsWidget extends StatefulWidget{
-
+class SettingsWidget extends StatefulWidget {
   final UpdateParentState updateStateMethod;
 
   SettingsWidget(Key key, this.updateStateMethod) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _SettingsState();
-
 }
 
-class _SettingsState extends State<SettingsWidget>{
-
+class _SettingsState extends State<SettingsWidget> {
   _SettingsState();
 
   @override
   Widget build(BuildContext context) {
-    return BackdropFilter(filter: ColorFilter.mode(Colors.black38, BlendMode.darken),
+    return BackdropFilter(
+      filter: ColorFilter.mode(Colors.black38, BlendMode.darken),
       child: GestureDetector(
-        child: FractionallySizedBox(widthFactor: getScaleValueTest(context, 0.3, 250, 1.5, 1080), //Transform.scale(scaleX: getScaleValue(context, 0.4, 0.9),//0.35,
+        child: FractionallySizedBox(
+          widthFactor: getScaleValueTest(context, 0.3, 250, 1.5, 1080), //Transform.scale(scaleX: getScaleValue(context, 0.4, 0.9),//0.35,
           child: FittedBox(
             child: Card(
               child: FittedBox(
                 child: Container(
                   child: Column(
                     children: [
-                    Material(
-                      child: Container(
-                        child: Text("Main Settings"),
-                        // width: 500,
-                        alignment: Alignment.center,
+                      Material(
+                          child: Container(
+                            child: Text("Main Settings"),
+                            // width: 500,
+                            alignment: Alignment.center,
+                          ),
+                          borderRadius: BorderRadius.circular(5.0),
+                          color: Colors.white12),
+                      Divider(),
+                      CustomColorSettingsWidget(
+                        widget.updateStateMethod,
+                        title: 'Main Theme Color',
+                        subtitleBuilder: (color) => '${ColorTools.materialNameAndCode(color)} aka ${ColorTools.nameThatColor(color)}',
+                        settingKey: "main_theme_color",
+                        onChange: (color) {
+                          updateMainAppWidget(context);
+                        },
                       ),
-                      borderRadius: BorderRadius.circular(5.0),
-                      color: Colors.white12
-                    ),
-                    Divider(),
-                    CustomColorSettingsWidget(widget.updateStateMethod,
-                      title: 'Main Theme Color',
-                      subtitleBuilder: (color) => '${ColorTools.materialNameAndCode(color)} aka ${ColorTools.nameThatColor(color)}',
-                      settingKey: "main_theme_color",
-                      onChange: (color) {
-                        updateMainAppWidget(context);
-                      },
-                    ),
-                    RadioSettingsTile(
-                      title: "Brightness Mode",
-                      settingKey: "brightness_mode",
-                      values: <int, String>{
-                        0: 'System',
-                        1: 'Light Mode',
-                        2: 'Dark Mode',
-                      },
-                      onChange: (color) {
-                        updateMainAppWidget(context);
-                      },
-                      selected: Settings.getValue<int>("brightness_mode", defaultValue: 0),
-                    ),
-                    CheckboxSettingsTile( //CheckboxSettingsTile
-                      leading: Icon(Icons.contrast),
-                      settingKey: 'full_black_text_icons',
-                      title: 'Black Text And Icon Color',
-                      onChange: (value) {
-                        ThemeHandler.fullBlackTextIcons = Settings.getValue("full_black_text_icons") ?? ThemeHandler.fullBlackTextIcons;
-                        updateMainAppWidget(context);
-                      },
-                    ),
-                  ],
-                ),
-                padding: EdgeInsets.all(10.0),
-                width: 450,
+                      RadioSettingsTile(
+                        title: "Brightness Mode",
+                        settingKey: "brightness_mode",
+                        values: <int, String>{
+                          0: 'System',
+                          1: 'Light Mode',
+                          2: 'Dark Mode',
+                        },
+                        onChange: (color) {
+                          updateMainAppWidget(context);
+                        },
+                        selected: Settings.getValue<int>("brightness_mode", defaultValue: 0),
+                      ),
+                      CheckboxSettingsTile(
+                        //CheckboxSettingsTile
+                        leading: Icon(Icons.contrast),
+                        settingKey: 'full_black_text_icons',
+                        title: 'Black Text And Icon Color',
+                        onChange: (value) {
+                          ThemeHandler.fullBlackTextIcons = Settings.getValue("full_black_text_icons") ?? ThemeHandler.fullBlackTextIcons;
+                          updateMainAppWidget(context);
+                        },
+                      ),
+                    ],
+                  ),
+                  padding: EdgeInsets.all(10.0),
+                  width: 450,
                 ),
               ),
               elevation: 20.0,
@@ -454,9 +440,7 @@ class _SettingsState extends State<SettingsWidget>{
     );
   }
 
-  static void updateMainAppWidget(BuildContext context){
+  static void updateMainAppWidget(BuildContext context) {
     MyApp.of(context).setState(() {});
   }
-
 }
-

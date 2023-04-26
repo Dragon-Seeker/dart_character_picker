@@ -10,7 +10,7 @@ import '../fl_main.dart';
 
 class FileHelper {
 
-  static bool alwaysCopyOverFiles = false;
+  static bool alwaysCopyOverFiles = true;
 
   static Future<void> initFiles() async {
     Directory directory = Directory(fileDirectory);

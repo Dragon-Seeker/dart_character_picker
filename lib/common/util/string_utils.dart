@@ -7,7 +7,7 @@ import 'package:io/ansi.dart';
 
 import '../main_config.dart';
 
-class TextLogger{
+class TextLogger {
 
   static bool disableAnsiOutput = false;
 
@@ -73,6 +73,10 @@ abstract class Named {
   List<StringAnsiHelper> getExtraFormattedData({bool debugInfo = false, int leftPadding = 0});
 
   //-------------------------------------------
+
+  Map<String, String> getExtraStringData(){
+    return {};
+  }
 
   String getFormattedName(){
     return StringUtils.capitalize(getName().replaceAll("_", " "), allWords: true);
@@ -242,10 +246,27 @@ class NamedImpl with Named{
 
 }
 
-class Pair<K, V>{
-  K left;
-  V right;
+class WrappedNamed extends NamedImpl{
 
-  Pair(this.left, this.right);
+  dynamic value;
+
+  WrappedNamed(this.value, {String? name}) : super(name ?? value.toString());
+
+  dynamic getValue(){
+    return value;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if(other is WrappedNamed){
+      value == other.getValue();
+    }
+
+    return value == other;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
+
 }
 

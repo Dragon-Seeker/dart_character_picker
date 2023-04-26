@@ -1,8 +1,8 @@
 
 import 'package:flutter/cupertino.dart';
 
-import '../../common/util/string_utils.dart';
-import '../fl_main.dart';
+import '../../../common/util/string_utils.dart';
+import '../../fl_main.dart';
 
 typedef UpdateParentState = void Function(void Function());
 
@@ -31,7 +31,7 @@ class OverlayHelper {
 
   //-----------------------
 
-  OverlayEntry? Function(UpdateParentState updateStateMethod, {List<dynamic>? inputs}) overlayBuilder;
+  OverlayEntry? Function(UpdateParentState updateStateMethod, {Map<String, dynamic>? inputs}) overlayBuilder;
 
   void Function()? interactMethodFunction;
 
@@ -54,7 +54,7 @@ class OverlayHelper {
   }
 
   static OverlayHelper emptyOverlayHelper(void Function() outputFunction){
-    return OverlayHelper(_emptyHelperKey, (updateStateMethod, {List<dynamic>? inputs}) {
+    return OverlayHelper(_emptyHelperKey, (updateStateMethod, {Map<String, dynamic>? inputs}) {
       outputFunction.call();
 
       return null;
@@ -63,7 +63,7 @@ class OverlayHelper {
 
   //-----------------------
 
-  bool openOverlay(BuildContext context, UpdateParentState updateStateMethod, {List<dynamic> inputs = const []}){
+  bool openOverlay(BuildContext context, UpdateParentState updateStateMethod, {Map<String, dynamic> inputs = const {}}){
     if(!closeOverlay()){
       for(Key key in linkedOverlays[linkedId] ?? []){
         if(key == overlayKey) continue;

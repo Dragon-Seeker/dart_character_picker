@@ -3,7 +3,7 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'overlay_helper.dart';
+import 'util/overlay_helper.dart';
 import 'ui_data/theme_data.dart';
 
 class ConfirmationWidget extends StatelessWidget{

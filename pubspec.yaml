@@ -2,6 +2,7 @@ name: dart_character_picker
 description: A sample command-line application.
 version: 1.0.0
 # homepage: https://www.example.com
+publish_to: none
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -45,3 +46,4 @@ dependencies:
   path_provider: ^2.0.11
   flex_color_picker: ^2.5.0
   flutter_settings_screens: ^0.3.2-null-safety
+  flutter_improved_scrolling: ^0.0.3

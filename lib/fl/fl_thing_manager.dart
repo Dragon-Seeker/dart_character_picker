@@ -7,7 +7,7 @@ import '../common/thing_manager.dart';
 import '../common/util/file_ops.dart';
 import '../common/util/string_utils.dart';
 import 'data/imageManager.dart';
-import 'widgets/overlay_helper.dart';
+import 'widgets/util/overlay_helper.dart';
 
 typedef CustomWidgetBuilder = Widget Function(BuildContext context, {List<dynamic>? inputs});
 
@@ -54,10 +54,10 @@ class UIDataManger {
     overlayMap[key] = helper;
   }
 
-  void createAndRegisterOverlayHelper(Key key, WidgetBuilder Function(UpdateParentState, {List<dynamic>? inputs}) builder, {bool overwriteAccess = true, bool removeOnClose = false}){
+  void createAndRegisterOverlayHelper(Key key, WidgetBuilder Function(UpdateParentState, {Map<String, dynamic>? inputs}) builder, {bool overwriteAccess = true, bool removeOnClose = false}){
     if(overlayMap.containsKey(key) && !overwriteAccess) return;
 
-    overlayMap[key] = OverlayHelper(key, (UpdateParentState updateStateMethod, {List<dynamic>? inputs}) => OverlayEntry(builder: builder.call(updateStateMethod, inputs: inputs)), removeOnClose: removeOnClose);
+    overlayMap[key] = OverlayHelper(key, (UpdateParentState updateStateMethod, {Map<String, dynamic>? inputs}) => OverlayEntry(builder: builder.call(updateStateMethod, inputs: inputs)), removeOnClose: removeOnClose);
 
   }
 

@@ -63,6 +63,11 @@ class ThingManager with Filterable {
     }
   }
 
+  Preset getPreset(String presetId, {User? user}){
+    return getAllPresets(user).firstWhere((element) => element.id == presetId, orElse: () => Preset.emptyPreset);
+  }
+
+
   String getFormattedName() {
     return StringUtils.capitalize(name.replaceAll("_", " "));
   }

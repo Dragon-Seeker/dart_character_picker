@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:basic_utils/basic_utils.dart';
 
+import '../thing_manager.dart';
 import '../util/string_utils.dart';
+import 'dart:math' as math;
 
 class AbstractProperty<T> extends Named {
   static AbstractProperty errorDataType = AbstractProperty("error", String);
@@ -42,6 +44,10 @@ class AbstractProperty<T> extends Named {
   List<StringAnsiHelper> getExtraFormattedData({bool debugInfo = false, int leftPadding = 0}) {
     return [StringAnsiHelper.ofArrow("[ValueType: ${type.toString()}]")];
   }
+
+  // Map<String, String> getExtraStringData(){
+  //   return { "ValueType" : type.toString() };
+  // }
 
   @override
   String toString() {
@@ -124,19 +130,19 @@ const int minInt = -9007199254740991;
 /// The biggest possible value of an int as double-precision floating-point to support java script
 const int maxInt =  9007199254740991;
 
-class NumberProperty<T extends num> extends AbstractProperty<T> {
+abstract class NumberProperty<T extends num> extends AbstractProperty<T> {
   static int maxStringLength = 0;
 
-  num min = 0;
-  num max = 0;
+  T min = 0 as T;
+  T max = 0 as T;
 
-  NumberProperty(String name, Type type, num? min, num? max) : super(name, type) {
+  NumberProperty(String name, Type type, T? min, T? max) : super(name, type) {
     if(type == int){
-      this.min = min ?? minInt;
-      this.max = max ?? maxInt;
+      this.min = min ?? (minInt as T);
+      this.max = max ?? (maxInt as T);
     } else {
-      this.min = min ?? double.minPositive;
-      this.max = max ?? double.maxFinite;
+      this.min = min ?? (double.minPositive as T);
+      this.max = max ?? (double.maxFinite as T);
     }
   }
 
@@ -148,20 +154,51 @@ class NumberProperty<T extends num> extends AbstractProperty<T> {
     return parseProperty(id, double, dataTypeInfo);
   }
 
-  static AbstractProperty parseProperty(String id, Type type, Map<String, dynamic> dataTypeInfo) {
+  static AbstractProperty parseProperty<T extends num>(String id, Type type, Map<String, dynamic> dataTypeInfo) {
     Map<String, dynamic> rangeMap = dataTypeInfo["range"];
 
-    num? min = rangeMap["min"];
-    num? max = rangeMap["max"];
+    T? min = rangeMap["min"];
+    T? max = rangeMap["max"];
 
     if(!rangeMap.containsKey("min") && !rangeMap.containsKey("max")) {
       TextLogger.warningOutput("A range was defined in a IntegerProperty but no min or max value was found! [NumProperty: $id]");
     }
 
-    return NumberProperty(id, type, min, max)..parseStringOverrides(dataTypeInfo);
+    NumberProperty<T> property;
+
+    if(type == int){
+      property = IntegerProperty(id, type, min != null ? min as int : null, max != null ? max as int : null) as NumberProperty<T>;
+    } else {
+      property = DoubleProperty(id, type, min != null ? min as double : null, min != null ? max as double : null) as NumberProperty<T>;
+    }
+
+    return property..parseStringOverrides(dataTypeInfo);
   }
 
   //--------------------------------
+
+  @override
+  List<double> getMinAndMaxValues(ThingManager manager){
+    T min = 0 as T;
+    T max = 0 as T;
+
+    for (var thing in manager.things) {
+      T currentValue = thing.properties[this];
+
+      min = math.min(min, currentValue);
+      max = math.max(max, currentValue);
+    }
+
+    if(min < this.min) min = this.min;
+    if(max > this.max) max = this.max;
+
+    return [min.toDouble(), max.toDouble()];
+  }
+
+  @override
+  List<double> getRangeAsDouble(){
+    return [min.toDouble(), max.toDouble()];
+  }
 
   @override
   String toString() {
@@ -191,6 +228,10 @@ class NumberProperty<T extends num> extends AbstractProperty<T> {
     }
   }
 
+  String getFormattedValueAsDouble(double value) {
+    return super.getFormattedValue(value as T);
+  }
+
   @override
   int getMaxStringLength() {
     return maxStringLength;
@@ -200,4 +241,25 @@ class NumberProperty<T extends num> extends AbstractProperty<T> {
   void setMaxStringLength(int value) {
     maxStringLength = value;
   }
+}
+
+class IntegerProperty extends NumberProperty<int>{
+
+  IntegerProperty(super.name, super.type, super.min, super.max);
+
+  @override
+  List<double> getRangeAsDouble(){
+    return [this.min.toDouble(), this.max.toDouble()];
+  }
+
+  @override
+  String getFormattedValueAsDouble(double value) {
+    return super.getFormattedValue(value.round());
+  }
+}
+
+class DoubleProperty extends NumberProperty<double>{
+
+  DoubleProperty(super.name, super.type, super.min, super.max);
+
 }

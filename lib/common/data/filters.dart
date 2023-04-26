@@ -251,6 +251,8 @@ enum OriginState {
 
 class Preset extends Named implements JsonEncodable{
 
+  static Preset emptyPreset = Preset("empty", []);
+
   static String unsavedPreset = "custom_unsaved";
 
   String id;
@@ -305,6 +307,9 @@ class Preset extends Named implements JsonEncodable{
     return Preset(unsavedPreset, (filters ?? [])..addAll(activeFilters));
   }
 
+  bool isEmpty(){
+    return this == Preset.emptyPreset;
+  }
 
   @override
   void encodeDataJson(Map<String, dynamic> jsonDataMap){

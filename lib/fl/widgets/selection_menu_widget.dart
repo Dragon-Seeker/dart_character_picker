@@ -3,13 +3,13 @@ import 'package:dart_numerics/dart_numerics.dart';
 import 'package:flutter/material.dart';
 
 import '../../common/data/filters.dart';
+import '../../common/data/property.dart';
 import '../../common/thing_manager.dart';
 import '../../common/util/string_utils.dart';
 import '../fl_main.dart';
 import 'confirmation_widget.dart';
 import 'creation_menu_widget.dart';
-import 'selection_menu_widget.dart';
-import 'overlay_helper.dart';
+import 'util/overlay_helper.dart';
 import 'thing_manager_widgets.dart';
 import 'ui_data/theme_data.dart';
 
@@ -28,45 +28,44 @@ class SelectionMenuWidget extends StatefulWidget {
   State<StatefulWidget> createState() {
     if(!dataManager.overlayMap.containsKey(createMenuKey)) {
       dataManager.registerOverlayHelper(createMenuKey, OverlayHelper(createMenuKey,
-        (UpdateParentState updateStateMethod, {List<dynamic>? inputs}) => OverlayEntry(builder: (context) => CreateMenuWidget(key!, type, updateStateMethod)), linkedOverlay: ManagerPageWidget.pickMenuKey, removeOnClose: true));
+        (UpdateParentState updateStateMethod, {Map<String, dynamic>? inputs}) => OverlayEntry(builder: (context) => CreateMenuWidget(key!, type, updateStateMethod, startingData: inputs)), linkedOverlay: ManagerPageWidget.pickMenuKey, removeOnClose: true));
     }
 
     return (type == CustomListTypes.preset) ? PresetSelectionMenuState() : FilterSelectionMenuState();
   }
 
-  static List<Widget> getNameEntryBaseWidget<T extends Named>(BuildContext context, {required T entry, required void Function(T) toggleFunction, required bool Function(T) isActive}) {
-    Container nameTextWidget = Container(
-      child: Text(
-        entry.getFormattedName(),
-        style: TextStyle(color: ThemeHandler.getContrastedColor(context) ?? Colors.white, fontWeight: FontWeight.w500),
-      ),
-      margin: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-      padding: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-      decoration: ThemeHandler.basicDecoration(context),
-    );
+  static List<Widget> getNameEntryBaseWidget<T extends Named>(BuildContext context, {required T entry, required void Function(T) toggleFunction, required bool Function(T) isActive, bool slimVersion = false}) {
+    Map<String, String> extraStringData = entry.getExtraStringData();
 
-    //-----------------------------------------
-
-    Map<String, String> extraStringData = {};
-
-    if(entry is AbstractFilter){
-      extraStringData = entry.getExtraStringData();
-    } else if (entry is Preset){
-      extraStringData = entry.getExtraStringData();
-    } else {
-      return [Container()];
-    }
-
-    Column columnExtraData = Column(
-      children: extraStringData.entries.map((entry) {
-        return Text("${entry.key} : ${entry.value}",
-          style: TextStyle(color: ThemeHandler.getContrastedColor(context),
-              fontWeight: FontWeight.w500,
-              fontSize: 13
+    List<Widget> mainColumnList = [
+      Container(
+        child: Container(
+          child: Text(
+            entry.getFormattedName(),
+            style: TextStyle(color: ThemeHandler.getContrastedColor(context) ?? Colors.white, fontWeight: FontWeight.w500),
           ),
-        );
-      }).toList(),
-    );
+          //margin: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
+          padding: EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 10),
+          decoration: ThemeHandler.basicDecoration(context),
+        ),
+        padding: extraStringData.isNotEmpty ? EdgeInsets.only(bottom: 6.0) : null,
+      ),
+    ];
+
+    if(extraStringData.isNotEmpty) {
+      mainColumnList.add(Container(
+        child: Column(
+          children: extraStringData.entries.map((entry) {
+            return Text("${entry.key} : ${entry.value}",
+              style: TextStyle(color: ThemeHandler.getContrastedColor(context),
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13
+              ),
+            );
+          }).toList(),
+        ),
+      ));
+    }
 
     //-----------------------------------------
 
@@ -78,13 +77,7 @@ class SelectionMenuWidget extends StatefulWidget {
           child: Container(
             child:ElevatedButton(
               child: Column(
-                children: [
-                  Container(
-                    child: nameTextWidget,
-                    padding: EdgeInsets.only(bottom: 6.0),
-                  ),
-                  Container(child: columnExtraData)
-                ],
+                children: mainColumnList,
               ),
               style: ElevatedButton.styleFrom(
                 primary: Colors.black26, // Theme.of(context).brightness == Brightness.light ? Colors.black26 : null,
@@ -99,7 +92,7 @@ class SelectionMenuWidget extends StatefulWidget {
             ),
             margin: EdgeInsets.only(left: 6, right: 6, top: 2, bottom: 2),
             // decoration: basicDecoration().copyWith(color: Colors.white24, border: border), //Colors.blue[800]
-            width: 250,
+            width: slimVersion ? 175 : 250,
           ),
         ),
       ),
@@ -263,7 +256,7 @@ abstract class SelectionMenuState<T extends Named> extends State<SelectionMenuWi
               ),
               padding: EdgeInsets.zero,
               onPressed: () {
-                editEntry(entry);
+                editEntry(context, entry);
               },
               splashRadius: 10.0,
             ),
@@ -302,7 +295,7 @@ abstract class SelectionMenuState<T extends Named> extends State<SelectionMenuWi
 
   void toggleEntry(T entry);
 
-  void editEntry(T entry);
+  void editEntry(BuildContext context, T entry);
 
   void removeEntry(T entry);
 
@@ -316,7 +309,9 @@ class PresetSelectionMenuState extends SelectionMenuState<Preset>{
 
   @override
   void onBuild(){
-    listOfEntries ??= currentManager!.getAllPresets(currentFlUser);
+    if(listOfEntries == null || listOfEntries?.length != currentManager!.getAllPresets(currentFlUser).length){
+      listOfEntries = currentManager!.getAllPresets(currentFlUser);
+    }
   }
 
   @override
@@ -331,26 +326,30 @@ class PresetSelectionMenuState extends SelectionMenuState<Preset>{
   }
 
   @override
-  void editEntry(Preset entry) {
-    // TODO: implement editEntry
+  void editEntry(BuildContext context, Preset entry) {
+    if(entry.state == OriginState.user){
+      dataManager.getOverlayHelperSafe(SelectionMenuWidget.createMenuKey).openOverlay(context, setState, inputs: {"identifier": entry.id, "editMode": true, "selected_filters": entry.activeFilters});
+    }
   }
 
   @override
   void removeEntry(Preset entry) {
     if(entry.state == OriginState.user){
       dataManager.createAndRegisterOverlayHelper(SelectionMenuWidget.confirmDeletionKey,
-        (UpdateParentState method, {List<dynamic>? inputs}) =>
-          (context) => ConfirmationWidget(SelectionMenuWidget.confirmDeletionKey, setState,
+        (UpdateParentState method, {Map<String, dynamic>? inputs}) =>
+          (context) => ConfirmationWidget(SelectionMenuWidget.confirmDeletionKey, method,
             title: Text("Delete Preset: ${entry.getName()}"),
             bodyWidget: Text("Are you sure that you want to delete it forever?", softWrap: true),
             confirmFunc: (UpdateParentState updateParentState) {
+              if(currentFlUser.currentPreset == entry) currentFlUser.currentPreset = null;
+
               currentFlUser.presets.remove(entry);
 
               currentFlUser.savePresets(currentManager!);
 
-              dataManager.getOverlayHelperSafe(SelectionMenuWidget.confirmDeletionKey).closeOverlay();
+              updateParentState.call(updateManagerWidget);
 
-              updateParentState.call(() {});
+              dataManager.getOverlayHelperSafe(SelectionMenuWidget.confirmDeletionKey).closeOverlay();
             },
             cancelFunc: () => dataManager.getOverlayHelperSafe(SelectionMenuWidget.confirmDeletionKey).closeOverlay(),
           ),
@@ -396,7 +395,7 @@ class FilterSelectionMenuState extends SelectionMenuState<AbstractFilter>{
   }
 
   @override
-  void editEntry(AbstractFilter entry) {
+  void editEntry(BuildContext context, AbstractFilter entry) {
     // TODO: implement editEntry
   }
 

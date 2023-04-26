@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_settings_screens/flutter_settings_screens.dart';
 import 'package:flutter_settings_screens/src/utils/widget_utils.dart';
 
-import '../../common/util/string_utils.dart';
-import 'overlay_helper.dart';
+import '../../../common/util/string_utils.dart';
+import '../util/overlay_helper.dart';
 
 class CustomColorSettingsWidget extends StatefulWidget{
 
@@ -59,11 +59,11 @@ class CustomColorSettingsWidget extends StatefulWidget{
   }
 
   @override
-  State<StatefulWidget> createState() => _CustomColorSettingsState();
+  State<StatefulWidget> createState() => CustomColorSettingsState();
 
 }
 
-class _CustomColorSettingsState extends State<CustomColorSettingsWidget>{
+class CustomColorSettingsState extends State<CustomColorSettingsWidget>{
 
   OverlayHelper? colorMenuHelper;
 
@@ -114,7 +114,7 @@ class _CustomColorSettingsState extends State<CustomColorSettingsWidget>{
             color: currentDisplayedColor,
             onSelectFocus: false,
             onSelect: () async {
-              colorMenuHelper = OverlayHelper(LabeledGlobalKey("ColorMenu"), (UpdateParentState updateStateMethod, {List<dynamic>? inputs}) {
+              colorMenuHelper = OverlayHelper(LabeledGlobalKey("ColorMenu"), (UpdateParentState updateStateMethod, {Map<String, dynamic>? inputs}) {
                 return OverlayEntry(
                     builder: (context) {
                       return colorPickerDialog(context, updateStateMethod, value, onChanged);

@@ -70,6 +70,12 @@ class Thing extends Named {
     return Map.of(properties)..remove(nameProperty);
   }
 
+  Map<String, String> getExtraStringData(){
+    return Map.of(properties).map((key, value) {
+      return MapEntry(key.id, value.toString());
+    });
+  }
+
   //----------------------------------------------------------
 
   @override
